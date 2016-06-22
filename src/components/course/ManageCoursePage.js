@@ -4,8 +4,9 @@ import {bindActionCreators} from 'redux';
 import * as courseActions from '../../actions/courseActions';
 import CourseForm from './CourseForm';
 import toastr from 'toastr';
+import {authorsFormattedForDropdown} from '../../selectors/selectors';
 
-class ManageCoursePage extends React.Component {
+export class ManageCoursePage extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = {
@@ -18,10 +19,10 @@ class ManageCoursePage extends React.Component {
   }
 
 
-  componentWillReceiveProps(nextProps){
-    if(this.props.course.id != nextProps.course.id){
+  componentWillReceiveProps(nextProps) {
+    if (this.props.course.id != nextProps.course.id) {
       //Necessary to populate form when existing course is loaded directly
-      this.setState({course: Object.assign({},nextProps.course)});
+      this.setState({course: Object.assign({}, nextProps.course)});
     }
   }
 
@@ -32,22 +33,38 @@ class ManageCoursePage extends React.Component {
     return this.setState({course: course});
   }
 
+  courseFormIsValid() {
+    let formIsValid = true;
+    let errors = {};
+    if (this.state.course.title.length < 5) {
+      errors.title = 'Title must be at least 5 characters.';
+      formIsValid = false;
+    }
+    this.setState({errors: errors});
+    return formIsValid;
+  }
+
   saveCourse(event) {
     event.preventDefault();
+    if (!this.courseFormIsValid()) {
+      return;
+    }
     this.setState({saving: true});
     this.props.actions.saveCourse(this.state.course)
       .then(()=>this.redirect())
-        .catch(error=>{
-          toastr.error(error);
-          this.setState({saving: false});
-        });
+      .catch(error=> {
+        toastr.error(error);
+        this.setState({saving: false});
+      });
 
   }
-  redirect(){
+
+  redirect() {
     this.setState({saving: false});
     toastr.success('Course saved');
     this.context.router.push('/courses');
   }
+
   render() {
     return (
       <CourseForm
@@ -73,28 +90,23 @@ ManageCoursePage.contextTypes = {
   router: PropTypes.object
 };
 
-function getCourseById(courses,id) {
+function getCourseById(courses, id) {
   //  debugger;
   const course = courses.filter(course => course.id == id);
-  if(course) return course[0];
+  if (course) return course[0];
   return null;
 }
 function mapStateToProps(state, ownProps) {
   const courseId = ownProps.params.id; //path from the 'course/:id
   let course = {id: '', watchHref: '', title: '', authorId: '', length: '', category: ''};
-  if (courseId && state.courses.length>0) {
+  if (courseId && state.courses.length > 0) {
     course = getCourseById(state.courses, courseId);
   }
-  const authorsFormattedForDropDown = state.authors.map(author => {
-    return {
-      value: author.id,
-      text: author.firstName + ' ' + author.lastName
-    };
-  });
+
 
   return {
     course: course,
-    authors: authorsFormattedForDropDown
+    authors: authorsFormattedForDropdown(state.authors)
   };
 }
 function mapDispatchToProps(dispatch) {
