@@ -94,7 +94,7 @@ function getCourseById(courses, id) {
   //  debugger;
   const course = courses.filter(course => course.id == id);
   if (course) return course[0];
-  return null;
+  return null;  
 }
 function mapStateToProps(state, ownProps) {
   const courseId = ownProps.params.id; //path from the 'course/:id

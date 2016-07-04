@@ -4,9 +4,8 @@
 import * as types from './actionTypes';
 
 export function beginAjaxCall() {
-  console.log('return type: BEGIN AJAX')
-  return {
 
+  return {
     type: types.BEGIN_AJAX_CALL
   };
 }
